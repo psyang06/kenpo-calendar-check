@@ -28,6 +28,7 @@ jobs:
         env:
           TARGET_URL: ${{ vars.TARGET_URL }}
           NTFY_TOPIC: ${{ vars.NTFY_TOPIC }}
+          KENPO_COOKIES: ${{ secrets.KENPO_COOKIES }}
         run: python check.py
 
       - name: Commit seen.json if changed
