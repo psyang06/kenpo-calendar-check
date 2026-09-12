@@ -212,6 +212,10 @@ def main() -> None:
         page.goto(TARGET_URL, timeout=30000)
         page.wait_for_load_state("networkidle")
 
+        print(f"[Debug] 目前網址: {page.url}")
+        body_preview = page.inner_text("body")[:600]
+        print(f"[Debug] 頁面文字開頭: {body_preview}")
+
         if is_challenge_page(page):
             print("[警告] 目前頁面是 Cloudflare 驗證頁，session 可能已過期")
             notify_ntfy(
