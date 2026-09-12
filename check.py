@@ -154,6 +154,14 @@ def main() -> None:
         slots = find_available_slots(page)
         print(f"掃到 {len(slots)} 個週五/週六的〇空缺格")
 
+        if len(slots) == 0:
+            table_count = len(page.query_selector_all("table"))
+            if table_count == 0:
+                # 完全沒有 table，很可能是網站有公告訊息（例如抽籤期間暫停查詢）
+                body_text = page.inner_text("body")
+                print("[提示] 頁面上沒有偵測到任何表格，可能是網站有公告訊息，內容如下：")
+                print(body_text[:800])
+
         for slot in slots:
             key = f"{slot['weekday']}|{slot.get('href')}"
             if key in seen:
