@@ -1,0 +1,43 @@
+name: Check Kenpo Calendar
+
+on:
+  schedule:
+    # 每 30 分鐘跑一次（UTC 時間，GitHub Actions cron 是 UTC）
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}   # 讓你可以在 GitHub 網頁上手動觸發測試
+
+permissions:
+  contents: write   # 需要 push seen.json 回 repo，記錄已通知過的項目
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run checker
+        env:
+          TARGET_URL: ${{ vars.TARGET_URL }}
+          NTFY_TOPIC: ${{ vars.NTFY_TOPIC }}
+        run: python check.py
+
+      - name: Commit seen.json if changed
+        run: |
+          if [ -n "$(git status --porcelain seen.json 2>/dev/null)" ]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add seen.json
+            git commit -m "update seen.json"
+            git push
+          else
+            echo "no changes"
+          fi
