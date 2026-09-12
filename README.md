@@ -1,0 +1,40 @@
+# its-kenpo 行事曆空缺監控
+
+每 30 分鐘自動檢查 its-kenpo 設施預約行事曆，只看「金（週五）」「土（週六）」，
+如果出現「〇」空缺記號，就點進去看是哪個設施，並用 ntfy.sh 推播通知你。
+
+（目前先不做 Email 通知，之後想加回來的話再跟我說一聲。）
+
+## ⚠️ 重要：selector 需要你確認一次
+
+`check.py` 裡 `find_available_slots()` 這段是根據常見的日本設施預約系統版面猜的
+（表格 `<table>`、標頭有「金」「土」文字、格子裡是「〇」文字或圖片 `alt="○"`）。
+
+**第一次上線請務必手動觸發一次 workflow（Actions 頁面 → Run workflow），
+看 log 裡「掃到 N 個週五/週六的〇空缺格」這行數字是否合理：**
+- 如果是 0 但你知道畫面上其實有〇 → selector 不對，需要我依實際 HTML 再調整
+- 如果數字合理 → 沒問題，可以放著跑
+
+如果要調整，最快的方法是：打開瀏覽器開發者工具（F12），在有〇符號的格子上按右鍵
+「檢查」，把那段 HTML 貼給我，我就能把 selector 改精確。
+
+## 設定步驟
+
+1. 到 GitHub 建立一個新的 repo（例如 `kenpo-calendar-check`），把這個資料夾內容 push 上去。
+
+2. 到 repo 的 **Settings → Secrets and variables → Actions → Variables**，新增：
+
+   | 名稱 | 說明 |
+   |---|---|
+   | `TARGET_URL` | 要監控的行事曆網址（就是你給我的那個 calendar_select 連結） |
+   | `NTFY_TOPIC` | 自訂一個 ntfy.sh topic 名稱，例如 `seiyou-kenpo-2026` |
+
+3. 手機上安裝 [ntfy](https://ntfy.sh/) app，訂閱你設定的 `NTFY_TOPIC`，就會收到推播。
+
+4. 到 Actions 頁面手動 Run workflow 測試一次，確認流程正常。
+
+## 關於網址可能過期
+
+你給的網址裡有一段 `s=...` 是加密過的 session 參數，**這類連結有時候會過期或跟登入狀態綁定**。
+如果之後 log 顯示抓不到表格內容，先手動打開這個網址確認還能不能看到行事曆；
+如果不能，要重新產生一個新的網址，更新 `TARGET_URL` 這個 Variable 就好，不用改程式碼。
